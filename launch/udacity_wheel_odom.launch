@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>	
+
+<launch>
+  <node pkg="depth_odometry" type="depth_odometry" name="depth_odometry" />
+</launch>
+
+
