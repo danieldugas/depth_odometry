@@ -10,8 +10,7 @@ from matplotlib import pyplot as plt
 from subprocess import Popen
 import sys
 import os
-from os.path import expanduser
-HOME = expanduser("~")
+HOME = os.path.abspath(os.path.expanduser("~"))
 sys.path.insert(0, os.path.join(HOME, "Documents/pyniel")) # Pyniel as available on github
 from pyniel.ros_tools.pointclouds import pointcloud2_to_numpy
 plt.ion()
@@ -46,7 +45,7 @@ class Listener(object):
           rospy.loginfo("Stopping ros listen")
           rospy.signal_shutdown("Message received")
 
-    def export_frames(self, directory="~/pepper_data/depth_clouds/"):
+    def export_frames(self, directory=os.path.join(HOME, "pepper_data/depth_clouds/")):
         if not self.finished:
             print("Frames are not yet recorded.")
             return None
@@ -54,8 +53,8 @@ class Listener(object):
         frame2 = self.frames[-1]
         tf1 = self.tfs[0]
         tf2 = self.tfs[-1]
-        f1 = pointcloud2_to_numpy(frame1, filter_nans="xyz")
-        f2 = pointcloud2_to_numpy(frame2, filter_nans="xyz")
+        f1 = pointcloud2_to_numpy(frame1)
+        f2 = pointcloud2_to_numpy(frame2)
         # TODO save tfs if useful
         if directory is not None:
             directory = os.path.abspath(directory)
