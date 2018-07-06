@@ -58,44 +58,70 @@ naa_s = normals_using_structure(aa, k=10)
 nbb_s = normals_using_structure(bb, k=10)
 
 chronostart = timer()
+# nan filter
 aisnotnan = np.logical_not(np.any(np.isnan(naa), axis=-1))
 bisnotnan = np.logical_not(np.any(np.isnan(nbb), axis=-1))
+# density filter
+aisnotnan[::10] = False
+bisnotnan[::10] = False
+# Apply filter
 a = aa[aisnotnan]
 b = bb[bisnotnan]
-aidx = np.where(aisnotnan)
-bidx = np.where(bisnotnan)
+na = naa[aisnotnan]
+nb = nbb[bisnotnan]
 chrono = timer() - chronostart
 chrono_name = "filtering nans"
 chronos[chrono_name] = chrono
 print("{} : {} ms".format(chrono_name, 1000.*chrono))
 
-na = naa[aisnotnan]
-nb = nbb[bisnotnan]
-from sklearn.neighbors import KDTree
-kdt = KDTree(a)
-chronostart = timer()
-nndist, nnidx = kdt.query(b)
-nn_b_in_a = a[nnidx[:,0], :]
-chrono = timer() - chronostart
-chrono_name = "Nearest neighbors"
-chronos[chrono_name] = chrono
-print("{} : {} ms".format(chrono_name, 1000.*chrono))
 
-normals_b_in_a = na[nnidx[:,0], :]
-rotvec = np.cross(normals_b_in_a, nb, axis=-1)
-from sklearn.linear_model import RANSACRegressor
-ransac = RANSACRegressor()
-chronostart = timer()
-ransac.fit(np.zeros((len(rotvec),1)), rotvec)
-bestrotvec = ransac.predict([[0]])
-chrono = timer() - chronostart
-chrono_name = "RANSAC"
-chronos[chrono_name] = chrono
-print("{} : {} ms".format(chrono_name, 1000.*chrono))
+def icp(a, na, b, nb, chronos={}):
+    from sklearn.neighbors import KDTree
+    kdt = KDTree(a)
+    chronostart = timer()
+    nndist, nnidx = kdt.query(b)
+    nn_b_in_a = a[nnidx[:,0], :]
+    chrono = timer() - chronostart
+    chrono_name = "Nearest neighbors"
+    chronos[chrono_name] = chrono
+    print("{} : {} ms".format(chrono_name, 1000.*chrono))
+
+    normals_b_in_a = na[nnidx[:,0], :]
+    rotvec = np.cross(normals_b_in_a, nb, axis=-1)
+    from sklearn.linear_model import RANSACRegressor
+    ransac = RANSACRegressor()
+    chronostart = timer()
+    ransac.fit(np.zeros((len(rotvec),1)), rotvec)
+    bestrotvec = ransac.predict([[0]])[0]
+    chrono = timer() - chronostart
+    chrono_name = "RANSAC"
+    chronos[chrono_name] = chrono
+    print("{} : {} ms".format(chrono_name, 1000.*chrono))
+
+    norm = np.linalg.norm(bestrotvec)
+    theta = np.arcsin(norm) / 2
+    vec = bestrotvec / norm
+    costh = np.cos(theta)
+    ncosth = 1 - costh
+    sinth = np.sin(theta)
+    ux = vec[0]
+    uy = vec[1]
+    uz = vec[2]
+    R = np.array([[ costh + ux*ux*ncosth, ux*uy*ncosth - uz*sinth, ux*uz*ncosth+uy*sinth ],
+                  [ uy*ux*ncosth+uz*sinth, costh+uy*uy*ncosth, uy*uz*ncosth-ux*sinth ],
+                  [ uz*ux*ncosth-uy*sinth, uz*uy*ncosth+ux*sinth, costh+uz*uz*ncosth ]])
+    b_rot = R.dot(a.T).T
+    return b_rot, R
 
 
-theta = np.arcsin(np.linalg.norm(rotvec, axis=-1))
-avgrot = np.average(rotvec[np.logical_not(np.any(np.isnan(rotvec), axis=-1))], axis=0)
+
+b_rot, _ = icp(a, na, b, nb, chronos)
+plt.figure()
+plt.scatter(b[:,0], b[:,2], c='b')
+# plt.scatter(b_rot[:,0], b_rot[:,2], c='r')
+plt.scatter(a[:,0], a[:,2], c='k')
+
+
 
 # from matplotlib import pyplot as plt; import test; plt.close("all"); test = reload(test); from test import *
 

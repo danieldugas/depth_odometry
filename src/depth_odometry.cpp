@@ -36,6 +36,8 @@ class DepthOdomTracker {
         return;
       }
 
+      tf:Transform prev_pose_to_new_pose;
+
       // Publish tf.
 //       tf::Transform transform;
 //       transform.setOrigin( tf::Vector3(current_x_estimate_, current_y_estimate_, 0.0) );
@@ -54,6 +56,8 @@ class DepthOdomTracker {
     ros::Subscriber depth_sub_;
     tf::TransformBroadcaster br_;
     bool is_called_for_the_first_time_ = true;
+    /// \brief simple odometry estimation using
+    tf::Transform odom_estimate_; 
 
 }; // class DepthOdomTracker
 
