@@ -36,7 +36,7 @@ class DepthOdomTracker {
         return;
       }
 
-      tf:Transform prev_pose_to_new_pose;
+//       tf:Transform prev_pose_to_new_pose;
 
       // Publish tf.
 //       tf::Transform transform;
@@ -57,7 +57,7 @@ class DepthOdomTracker {
     tf::TransformBroadcaster br_;
     bool is_called_for_the_first_time_ = true;
     /// \brief simple odometry estimation using
-    tf::Transform odom_estimate_; 
+//     tf::Transform odom_estimate_; 
 
 }; // class DepthOdomTracker
 
