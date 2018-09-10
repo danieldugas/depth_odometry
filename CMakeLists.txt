@@ -41,7 +41,7 @@ add_compile_options(-std=c++11)
 # )
 
 ## Declare a C++ executable
-add_executable(depth_odometry src/depth_odometry.cpp)
+#add_executable(depth_odometry src/depth_odometry.cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(depth_odometry ${catkin_LIBRARIES})
+#target_link_libraries(depth_odometry ${catkin_LIBRARIES})
